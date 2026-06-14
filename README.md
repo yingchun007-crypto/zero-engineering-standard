@@ -56,7 +56,7 @@ zero-engineering-standard
 推荐在仓库根目录执行安装脚本：
 
 ```powershell
-.\install.ps1
+powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
 脚本会把整个 Skill 安装到：
@@ -68,18 +68,23 @@ zero-engineering-standard
 如需覆盖旧版本且不保留备份：
 
 ```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -NoBackup
+```
+
+如果已经在 PowerShell 中，也可以先临时放开当前会话的执行策略：
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\install.ps1 -NoBackup
 ```
 
-也可以手动将整个仓库复制到 Codex skills 目录：
+如果你在 `cmd` 中，不要直接执行 `.\install.ps1`，否则可能会打开记事本或编辑器。请使用：
 
-```powershell
-$target = "$env:USERPROFILE\.codex\skills\zero-engineering-standard"
-New-Item -ItemType Directory -Force -Path (Split-Path $target) | Out-Null
-Copy-Item -Recurse -Force ".\zero-engineering-standard" $target
+```cmd
+powershell -ExecutionPolicy Bypass -File install.ps1 -NoBackup
 ```
 
-如果你已经在仓库目录内，也可以执行：
+也可以手动将整个仓库复制到 Codex skills 目录：
 
 ```powershell
 $target = "$env:USERPROFILE\.codex\skills\zero-engineering-standard"
@@ -144,14 +149,30 @@ Codex 会根据任务内容按需读取对应规范，例如：
 
 ## 更新方式
 
-拉取最新仓库后，重新复制到本地 Codex skills 目录即可。
+拉取最新仓库后，重新执行安装脚本即可。
 
-Windows 示例：
+### Windows 更新
 
 ```powershell
-$target = "$env:USERPROFILE\.codex\skills\zero-engineering-standard"
-Remove-Item -Recurse -Force $target -ErrorAction SilentlyContinue
-Copy-Item -Recurse -Force . $target
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -NoBackup
+```
+
+如果希望更新前保留旧版本备份：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+### macOS / Linux 更新
+
+```bash
+NO_BACKUP=1 ./install.sh
+```
+
+如果希望更新前保留旧版本备份：
+
+```bash
+./install.sh
 ```
 
 ## 版本发布建议
