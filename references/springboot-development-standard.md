@@ -9,6 +9,7 @@
 - [Controller](#controller)
 - [DTO / VO / Entity](#dto--vo--entity)
 - [Service 与事务](#service-与事务)
+- [Sa-Token 权限](#sa-token-权限)
 - [Mapper / MyBatis-Plus](#mapper--mybatis-plus)
 - [异常与响应](#异常与响应)
 - [日志与配置](#日志与配置)
@@ -33,6 +34,7 @@
 - 不为了套用本文示例而新增框架、移动目录或重写基础设施。
 - 新建且无约束项目可参考：Java 17+、Spring Boot 3.x、Maven / Gradle、Spring Validation、MyBatis-Plus、springdoc-openapi、Lombok。
 - 项目已使用或允许使用 Lombok 时，优先使用 Lombok 减少样板代码；不要在局部代码中混用大量手写 getter/setter/构造器。
+- 涉及登录、认证、鉴权、角色、权限点时，Spring Boot 项目优先使用项目统一的 Sa-Token 方案；新增依赖和版本管理遵守依赖规范。
 
 ## 分层与目录
 
@@ -79,6 +81,14 @@
 - 可预期业务失败使用项目统一业务异常和错误码。
 - 批量操作必须限制数量、校验权限，并明确部分成功 / 全部回滚策略。
 
+## Sa-Token 权限
+
+- Sa-Token 负责登录态、会话、Token、踢人下线、禁用账号等认证能力。
+- 业务权限优先采用“角色-菜单-接口路由”动态模型，不优先在 Controller 大量硬编码 `@SaCheckPermission("xxx")`。
+- 后端必须根据请求路由做权限校验，Service 层继续校验数据归属；前端菜单/按钮权限只负责展示控制。
+- Sa-Token 异常和路由权限拒绝必须纳入统一异常处理。
+- 初始化权限基础设施或需要详细模板时，读取 `references/examples/springboot-examples.md`。
+
 ## Mapper / MyBatis-Plus
 
 - 优先使用类型安全查询能力；复杂 SQL 可使用 XML 或自定义 SQL，但必须参数化。
@@ -117,6 +127,7 @@
 - Controller 是否轻薄，Service 是否承载业务和事务。
 - DTO / VO / Entity 是否分离，是否过滤敏感字段。
 - 是否使用统一响应、错误码、异常处理和分页结构。
+- 涉及权限时，是否使用 Sa-Token 统一认证，是否按角色-菜单-接口路由动态校验权限，Service 是否校验数据归属。
 - 是否存在 SQL 注入、越权、日志泄露、事务过大或数据不一致风险。
 - 是否补充测试，或说明未补测试原因。
 - 是否执行项目对应测试 / 构建 / 静态检查命令。

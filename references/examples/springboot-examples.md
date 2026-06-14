@@ -23,7 +23,11 @@ common
 └── result/ErrorCode.java
 config
 ├── MybatisPlusConfig.java
-└── MybatisPlusMetaObjectHandler.java
+├── MybatisPlusMetaObjectHandler.java
+└── SaTokenConfigure.java
+security
+├── AuthContext.java
+└── RoutePermissionService.java
 module/user
 ├── controller/UserController.java
 ├── dto/UserCreateDTO.java
@@ -202,6 +206,16 @@ public class GlobalExceptionHandler {
                 .map(ConstraintViolation::getMessage)
                 .orElse("请求参数校验失败");
         return ApiResult.error(ErrorCode.PARAM_ERROR.getCode(), message);
+    }
+
+    @ExceptionHandler(NotLoginException.class)
+    public ApiResult<Void> handleNotLoginException(NotLoginException ex) {
+        return ApiResult.error(ErrorCode.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler({NotPermissionException.class, NotRoleException.class})
+    public ApiResult<Void> handleForbiddenException(Exception ex) {
+        return ApiResult.error(ErrorCode.FORBIDDEN);
     }
 
     @ExceptionHandler(Exception.class)
@@ -384,6 +398,142 @@ public class UserController {
     @PostMapping
     public ApiResult<UserVO> createUser(@Valid @RequestBody UserCreateDTO request) {
         return ApiResult.ok(userService.createUser(request));
+    }
+}
+```
+
+## Sa-Token 权限
+
+以下示例用于项目采用 Sa-Token 时初始化统一认证与动态路由权限能力。新增 Sa-Token 依赖前仍需遵守 `references/dependency-management-standard.md`。
+
+推荐权限模型：
+
+```text
+sys_role
+sys_menu
+sys_role_menu
+
+sys_menu 建议维护：
+- path_pattern：接口路径模式，如 /api/v1/users/**
+- http_method：GET / POST / PUT / DELETE / PATCH，允许为空表示全部方法
+- permission_type：MENU / BUTTON / API
+- enabled：是否启用
+```
+
+### 登录用户上下文
+
+```java
+public final class AuthContext {
+
+    private AuthContext() {
+    }
+
+    public static Long getLoginUserId() {
+        return StpUtil.getLoginIdAsLong();
+    }
+
+    public static boolean isLogin() {
+        return StpUtil.isLogin();
+    }
+}
+```
+
+### 动态路由权限服务
+
+```java
+@Service
+@RequiredArgsConstructor
+public class RoutePermissionService {
+
+    private final MenuMapper menuMapper;
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
+    public boolean hasPermission(Long userId, String method, String requestPath) {
+        List<MenuPermissionRoute> routes = menuMapper.selectPermissionRoutesByUserId(userId);
+        return routes.stream().anyMatch(route -> matchRoute(route, method, requestPath));
+    }
+
+    private boolean matchRoute(MenuPermissionRoute route, String method, String requestPath) {
+        boolean methodMatched = route.getHttpMethod() == null
+                || route.getHttpMethod().equalsIgnoreCase(method);
+        return methodMatched && pathMatcher.match(route.getPathPattern(), requestPath);
+    }
+}
+
+@Data
+public class MenuPermissionRoute {
+    private String pathPattern;
+    private String httpMethod;
+}
+```
+
+### Sa-Token 拦截器
+
+```java
+@Configuration
+@RequiredArgsConstructor
+public class SaTokenConfigure implements WebMvcConfigurer {
+
+    private final RoutePermissionService routePermissionService;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new SaInterceptor(handle -> {
+                    StpUtil.checkLogin();
+                    HttpServletRequest request = (HttpServletRequest) SaHolder.getRequest().getSource();
+                    Long userId = StpUtil.getLoginIdAsLong();
+                    boolean allowed = routePermissionService.hasPermission(
+                            userId,
+                            request.getMethod(),
+                            request.getRequestURI()
+                    );
+                    ApiResultAssert.isTrue(allowed, ErrorCode.FORBIDDEN);
+                }))
+                .addPathPatterns("/**")
+                .excludePathPatterns(
+                        "/api/v1/auth/login",
+                        "/api/v1/auth/logout",
+                        "/actuator/health",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**"
+                );
+    }
+}
+```
+
+### Controller
+
+```java
+@Validated
+@RestController
+@RequestMapping("/api/v1/users")
+@RequiredArgsConstructor
+public class UserController {
+
+    private final UserService userService;
+
+    @GetMapping
+    public ApiResult<PageResult<UserVO>> pageUsers(@Validated UserQueryDTO query) {
+        return ApiResult.ok(userService.pageUsers(query));
+    }
+}
+```
+
+### Service 数据归属校验
+
+```java
+@Service
+@RequiredArgsConstructor
+public class UserServiceImpl implements UserService {
+
+    private final UserMapper userMapper;
+
+    @Override
+    public UserVO getCurrentUserProfile() {
+        Long loginUserId = AuthContext.getLoginUserId();
+        User user = userMapper.selectById(loginUserId);
+        ApiResultAssert.notNull(user, ErrorCode.USER_NOT_FOUND);
+        return UserConvert.toVO(user);
     }
 }
 ```
