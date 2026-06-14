@@ -10,6 +10,16 @@
 - Spring Bean 依赖注入使用 `private final` 字段 + `@RequiredArgsConstructor`，避免字段注入。
 - 需要无参/全参构造的响应对象使用 `@NoArgsConstructor`、`@AllArgsConstructor`。
 
+## OpenAPI 常用导入
+
+```java
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springdoc.core.annotations.ParameterObject;
+```
+
 ## 推荐包结构
 
 ```text
@@ -335,12 +345,12 @@ public class UserCreateDTO {
 
     @NotBlank(message = "用户名不能为空")
     @Size(max = 32, message = "用户名长度不能超过32个字符")
-    @Schema(description = "用户名", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "用户名", requiredMode = Schema.RequiredMode.REQUIRED, example = "zhangsan")
     private String username;
 
     @NotBlank(message = "手机号不能为空")
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-    @Schema(description = "手机号", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "手机号", requiredMode = Schema.RequiredMode.REQUIRED, example = "13800138000")
     private String mobile;
 }
 
@@ -357,15 +367,21 @@ public class UserQueryDTO {
     @Schema(description = "每页数量，最大100", example = "10")
     private Long pageSize = 10L;
 
-    @Schema(description = "用户名，支持模糊查询")
+    @Schema(description = "用户名，支持模糊查询", example = "zhang")
     private String username;
 }
 
 @Data
 @Schema(description = "用户响应")
 public class UserVO {
+
+    @Schema(description = "用户ID", example = "10001")
     private Long id;
+
+    @Schema(description = "用户名", example = "zhangsan")
     private String username;
+
+    @Schema(description = "手机号", example = "13800138000")
     private String mobile;
 }
 ```
@@ -377,24 +393,27 @@ public class UserVO {
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
-@Tag(name = "用户管理")
+@Tag(name = "用户管理", description = "用户查询、创建与资料维护接口")
 public class UserController {
 
     private final UserService userService;
 
-    @Operation(summary = "分页查询用户")
+    @Operation(summary = "分页查询用户", description = "按用户名模糊查询用户列表，返回统一分页结构")
     @GetMapping
-    public ApiResult<PageResult<UserVO>> pageUsers(@Validated UserQueryDTO query) {
+    public ApiResult<PageResult<UserVO>> pageUsers(@ParameterObject @Validated UserQueryDTO query) {
         return ApiResult.ok(userService.pageUsers(query));
     }
 
-    @Operation(summary = "查询用户详情")
+    @Operation(summary = "查询用户详情", description = "根据用户ID查询用户基础信息")
     @GetMapping("/{userId}")
-    public ApiResult<UserVO> getUser(@PathVariable("userId") @NotNull(message = "用户ID不能为空") Long userId) {
+    public ApiResult<UserVO> getUser(
+            @Parameter(description = "用户ID", required = true, example = "10001")
+            @PathVariable("userId")
+            @NotNull(message = "用户ID不能为空") Long userId) {
         return ApiResult.ok(userService.getUser(userId));
     }
 
-    @Operation(summary = "创建用户")
+    @Operation(summary = "创建用户", description = "创建用户并返回创建后的用户信息")
     @PostMapping
     public ApiResult<UserVO> createUser(@Valid @RequestBody UserCreateDTO request) {
         return ApiResult.ok(userService.createUser(request));
@@ -508,12 +527,14 @@ public class SaTokenConfigure implements WebMvcConfigurer {
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
+@Tag(name = "用户管理", description = "用户查询、创建与资料维护接口")
 public class UserController {
 
     private final UserService userService;
 
+    @Operation(summary = "分页查询用户", description = "权限由 Sa-Token 拦截器按请求路由动态校验")
     @GetMapping
-    public ApiResult<PageResult<UserVO>> pageUsers(@Validated UserQueryDTO query) {
+    public ApiResult<PageResult<UserVO>> pageUsers(@ParameterObject @Validated UserQueryDTO query) {
         return ApiResult.ok(userService.pageUsers(query));
     }
 }

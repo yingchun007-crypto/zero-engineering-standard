@@ -7,6 +7,7 @@
 - [项目优先级](#项目优先级)
 - [分层与目录](#分层与目录)
 - [Controller](#controller)
+- [OpenAPI / springdoc](#openapi--springdoc)
 - [DTO / VO / Entity](#dto--vo--entity)
 - [Service 与事务](#service-与事务)
 - [Sa-Token 权限](#sa-token-权限)
@@ -58,7 +59,17 @@
 - 不在 Controller 中写复杂业务、事务、SQL、对象拼装和通用 try-catch。
 - 不直接返回 Entity、异常堆栈、SQL、内部类名、密钥或 Token。
 - 路径遵循 API 设计规范；Java 侧路径变量使用清晰命名，如 `{userId}`。
-- OpenAPI 注解应说明 summary、关键参数、响应和废弃状态。
+
+## OpenAPI / springdoc
+
+- 使用 springdoc-openapi 的项目，业务 Controller 类必须使用 `@Tag` 标识接口分组。
+- 对外业务接口必须使用 `@Operation`，至少写清 `summary`；复杂接口补充 `description`、响应差异和关键业务限制。
+- 直接声明的路径参数、查询参数、Header 参数使用 `@Parameter` 说明含义、是否必填和示例；查询对象可按项目约定使用 `@ParameterObject`。
+- 请求 DTO、响应 VO、统一响应、分页对象的关键字段使用 `@Schema`，并补充 `description`、`example`、`requiredMode` 等必要信息。
+- 废弃接口必须同时标记 Java `@Deprecated` 和 `@Operation(deprecated = true)`，并说明替代接口。
+- 不在文档中暴露内部字段、权限表达式、密钥、Token、SQL、异常堆栈或仅后端使用的调试信息。
+- 文件下载、流式响应、Webhook、Actuator 等特殊接口按协议补充文档；无法套统一响应时必须说明响应格式。
+- 初始化或补齐完整样例时读取 `references/examples/springboot-examples.md`。
 
 ## DTO / VO / Entity
 
@@ -125,6 +136,7 @@
 - 是否读取同类模块并延续项目结构。
 - 是否符合 API、安全、数据库、依赖和测试规范。
 - Controller 是否轻薄，Service 是否承载业务和事务。
+- 对外接口是否补充 `@Tag`、`@Operation`、`@Parameter`、`@Schema` 等 OpenAPI 文档注解。
 - DTO / VO / Entity 是否分离，是否过滤敏感字段。
 - 是否使用统一响应、错误码、异常处理和分页结构。
 - 涉及权限时，是否使用 Sa-Token 统一认证，是否按角色-菜单-接口路由动态校验权限，Service 是否校验数据归属。
