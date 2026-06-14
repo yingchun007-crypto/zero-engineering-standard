@@ -53,7 +53,25 @@ zero-engineering-standard
 
 ### Windows
 
-将整个仓库复制到 Codex skills 目录：
+推荐在仓库根目录执行安装脚本：
+
+```powershell
+.\install.ps1
+```
+
+脚本会把整个 Skill 安装到：
+
+```text
+%USERPROFILE%\.codex\skills\zero-engineering-standard
+```
+
+如需覆盖旧版本且不保留备份：
+
+```powershell
+.\install.ps1 -NoBackup
+```
+
+也可以手动将整个仓库复制到 Codex skills 目录：
 
 ```powershell
 $target = "$env:USERPROFILE\.codex\skills\zero-engineering-standard"
@@ -70,6 +88,27 @@ Copy-Item -Recurse -Force . $target
 ```
 
 ### macOS / Linux
+
+推荐在仓库根目录执行安装脚本：
+
+```bash
+chmod +x ./install.sh
+./install.sh
+```
+
+脚本会把整个 Skill 安装到：
+
+```text
+~/.codex/skills/zero-engineering-standard
+```
+
+如需覆盖旧版本且不保留备份：
+
+```bash
+NO_BACKUP=1 ./install.sh
+```
+
+也可以手动复制：
 
 ```bash
 mkdir -p ~/.codex/skills
@@ -152,4 +191,3 @@ git push origin v0.1.0
 - 依赖管理规范
 - Git 工作流规范
 - Spring Boot / FastAPI 初始化示例模板
-
