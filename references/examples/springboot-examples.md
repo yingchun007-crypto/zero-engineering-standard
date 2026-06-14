@@ -622,10 +622,13 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public UserVO createUser(UserCreateDTO request) {
+        // 先做手机号唯一性校验，把业务冲突转换为稳定错误码，避免数据库唯一索引异常直接暴露给调用方。
         boolean exists = userMapper.exists(
                 Wrappers.<User>lambdaQuery().eq(User::getMobile, request.getMobile())
         );
         ApiResultAssert.isFalse(exists, ErrorCode.USER_MOBILE_EXISTS);
+
+        // 校验通过后再创建用户，当前方法由事务兜底，后续新增跨表写入应放在同一事务边界内。
         User user = UserConvert.toEntity(request);
         userMapper.insert(user);
         return UserConvert.toVO(user);

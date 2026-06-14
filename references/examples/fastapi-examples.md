@@ -307,8 +307,11 @@ class UserService:
             BusinessException: 手机号已存在时抛出 USER_MOBILE_EXISTS。
         """
         try:
+            # 先做手机号唯一性校验，把业务冲突转换为稳定错误码，避免数据库唯一索引异常直接暴露给调用方。
             exists = await self.repository.exists_by_mobile(request.mobile)
             ApiAssert.is_false(exists, ErrorCode.USER_MOBILE_EXISTS)
+
+            # 校验通过后再创建用户，当前方法负责提交事务，后续新增跨表写入应放在同一事务边界内。
             user = UserConverter.create_request_to_model(request)
             self.db.add(user)
             await self.db.commit()
