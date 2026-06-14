@@ -1,0 +1,7 @@
+interface:
+  display_name: "零维工程规范"
+  short_description: "零维团队工程规范入口，覆盖开发、安全、API、测试、Review、依赖、数据库和 Git"
+  default_prompt: "使用 $zero-engineering-standard 按零维团队工程规范分析、实现、测试或审查代码变更。"
+
+policy:
+  allow_implicit_invocation: true
