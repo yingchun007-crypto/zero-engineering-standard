@@ -11,6 +11,7 @@
 - [Service / Repository / 事务](#service--repository--事务)
 - [响应与异常](#响应与异常)
 - [异步与外部调用](#异步与外部调用)
+- [注释规范](#注释规范)
 - [配置、日志和风格](#配置日志和风格)
 - [交付清单](#交付清单)
 - [可选示例](#可选示例)
@@ -24,6 +25,7 @@
 - 数据库表结构、索引、迁移：`references/database-design-standard.md`
 - 新增 / 升级依赖：`references/dependency-management-standard.md`
 - 测试：`references/testing-standard.md`
+- 注释、docstring、字段说明：`references/comment-standard.md`
 - Review：`references/code-review-standard.md`
 
 ## 项目优先级
@@ -88,6 +90,17 @@
 - 第三方调用必须设置连接 / 读取超时，处理超时、非 2xx、业务失败码和空响应。
 - 非幂等第三方操作谨慎重试，必须有次数上限和退避策略。
 
+## 注释规范
+
+- 必须同时遵守 `references/comment-standard.md`。
+- 公共模块、Service 类、Repository 复杂查询类和跨模块工具函数必须写 docstring，说明职责和适用边界。
+- Service 公共方法必须写 docstring，包含方法用途、Args 参数语义、Returns 返回值语义、Raises 主要业务异常 / 错误码。
+- Router 对外接口以 FastAPI `summary`、`description`、`response_model`、`Path`、`Query`、`Body` 文档为主；复杂限制可补充函数 docstring。
+- Pydantic Schema 字段必须通过 `Field(description=..., examples=...)` 或项目约定说明关键字段含义。
+- Repository 复杂查询方法必须说明过滤条件、排序、权限范围、逻辑删除和返回空值语义。
+- 复杂异步流程、事务、补偿、权限和数据归属判断必须用短注释说明原因。
+- 简单私有函数和显而易见的局部变量不机械补注释。
+
 ## 配置、日志和风格
 
 - 配置集中管理；环境差异通过环境变量、`.env`、配置中心或项目既有方案注入。
@@ -95,7 +108,7 @@
 - 使用 logging / structlog / 项目统一日志方案，禁止 `print()` 进入生产代码。
 - 日志包含必要上下文，禁止打印密码、Token、密钥、完整手机号、身份证、完整请求 / 响应大对象。
 - 遵循 Ruff、mypy、EditorConfig 或项目现有风格；不提交无关格式化。
-- 公共函数和复杂业务方法应有类型注解和必要 docstring。
+- 公共函数和复杂业务方法必须有类型注解和必要 docstring。
 
 ## 交付清单
 
@@ -104,6 +117,7 @@
 - Router 是否轻薄，Service 是否承载业务和事务。
 - Schema / Model / Converter 是否分离，是否过滤敏感字段。
 - 是否使用统一响应、错误码、异常处理和分页结构。
+- 公共类、Service 方法、复杂 Repository 和关键 Schema 字段是否补充必要注释。
 - 是否存在阻塞 IO、SQL 注入、越权、日志泄露、事务过大或数据不一致风险。
 - 是否补充测试，或说明未补测试原因。
 - 是否执行项目对应 `ruff check`、`ruff format`、`pytest` 或既有检查命令。

@@ -2,7 +2,7 @@
 
 零维团队 Codex 工程开发规范 Skill。
 
-这个仓库用于给 Codex 提供一套可复用的团队工程规范入口，覆盖代码实现、架构/方案设计、Spring Boot、FastAPI、Soybean Admin、API 设计、安全、测试、数据库变更、依赖管理、Git 工作流、代码审查、Bug 修复和重构等场景。
+这个仓库用于给 Codex 提供一套可复用的团队工程规范入口，覆盖代码实现、架构/方案设计、Spring Boot、FastAPI、Soybean Admin、API 设计、安全、测试、注释、数据库变更、依赖管理、Git 工作流、代码审查、Bug 修复和重构等场景。
 
 ## 适用场景
 
@@ -15,6 +15,7 @@
 - 设计 API、数据库表结构或迁移脚本
 - 做代码审查、Bug 修复、重构
 - 补测试、检查安全风险、评估接口兼容性
+- 统一 Javadoc、docstring、TSDoc、类/方法/参数/返回值和字段注释风格
 - 生成 Commit Message、PR / MR 描述
 - 初始化 Spring Boot / FastAPI 项目的统一响应、分页、异常、断言等公共基础设施
 
@@ -28,6 +29,7 @@ zero-engineering-standard
 └── references
     ├── api-design-standard.md
     ├── code-review-standard.md
+    ├── comment-standard.md
     ├── database-design-standard.md
     ├── dependency-management-standard.md
     ├── fastapi-development-standard.md
@@ -144,6 +146,7 @@ Codex 会根据任务内容按需读取对应规范，例如：
 - Spring Boot 任务读取 `references/springboot-development-standard.md`
 - API 设计任务读取 `references/api-design-standard.md`
 - 安全相关任务读取 `references/security-development-standard.md`
+- 注释相关任务读取 `references/comment-standard.md`
 - 代码审查任务读取 `references/code-review-standard.md`
 - 初始化 Spring Boot / FastAPI 公共基础设施时读取 `references/examples/`
 
@@ -207,6 +210,7 @@ git push origin v0.1.0
 - API 设计规范
 - 安全开发规范
 - 测试规范
+- 注释规范
 - 代码审查规范
 - 数据库设计规范
 - 依赖管理规范

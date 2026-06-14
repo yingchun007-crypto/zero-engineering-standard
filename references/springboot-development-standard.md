@@ -14,6 +14,7 @@
 - [Mapper / MyBatis-Plus](#mapper--mybatis-plus)
 - [异常与响应](#异常与响应)
 - [日志与配置](#日志与配置)
+- [注释规范](#注释规范)
 - [代码风格](#代码风格)
 - [交付清单](#交付清单)
 - [可选示例](#可选示例)
@@ -27,6 +28,7 @@
 - 数据库表结构、索引、迁移：`references/database-design-standard.md`
 - 新增 / 升级依赖：`references/dependency-management-standard.md`
 - 测试：`references/testing-standard.md`
+- 注释、Javadoc、字段说明：`references/comment-standard.md`
 - Review：`references/code-review-standard.md`
 
 ## 项目优先级
@@ -123,6 +125,17 @@
 - 配置集中管理，环境差异通过 profile、环境变量或配置中心处理。
 - 生产敏感配置不得提交仓库。
 
+## 注释规范
+
+- 必须同时遵守 `references/comment-standard.md`。
+- 公共类、公共接口、Service 接口、复杂工具类必须写类级 Javadoc，说明职责和适用边界。
+- Service 接口方法必须写 Javadoc，包含方法用途、`@param` 参数语义、`@return` 返回值语义，以及主要业务异常 / 错误码。
+- Controller 对外接口以 OpenAPI 注解为主；复杂业务限制、权限要求、幂等规则可在 `@Operation(description = "...")` 或方法 Javadoc 中说明。
+- DTO / VO / Entity 字段优先使用 `@Schema` 和数据库字段注释表达；内部字段或复杂状态字段必要时补充 Javadoc。
+- Mapper 自定义复杂查询方法必须说明查询条件、排序、权限范围、逻辑删除和返回空值语义。
+- ServiceImpl 中复杂流程、事务边界、补偿、状态流转、权限和数据归属判断必须用短注释说明原因。
+- 简单 getter/setter、Lombok 生成方法、显而易见的私有方法不机械补注释。
+
 ## 代码风格
 
 - 遵循项目 `.editorconfig`、Checkstyle、Spotless、IDEA Code Style 或现有风格。
@@ -139,6 +152,7 @@
 - 对外接口是否补充 `@Tag`、`@Operation`、`@Parameter`、`@Schema` 等 OpenAPI 文档注解。
 - DTO / VO / Entity 是否分离，是否过滤敏感字段。
 - 是否使用统一响应、错误码、异常处理和分页结构。
+- 公共类、Service 接口方法、复杂 Mapper 和关键字段是否补充必要注释。
 - 涉及权限时，是否使用 Sa-Token 统一认证，是否按角色-菜单-接口路由动态校验权限，Service 是否校验数据归属。
 - 是否存在 SQL 注入、越权、日志泄露、事务过大或数据不一致风险。
 - 是否补充测试，或说明未补测试原因。

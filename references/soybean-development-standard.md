@@ -364,15 +364,36 @@ pnpm lint
 
 ## 注释规范
 
-注释应说明业务意图、复杂逻辑和边界条件。
+必须同时遵守 `references/comment-standard.md`。注释应说明业务意图、复杂逻辑、边界条件和调用约束。
 
 要求：
 
-- API 函数应有简短注释。
-- 复杂 store action、权限判断、请求错误处理必须有必要注释。
-- 类型文件中的关键字段应有注释，便于调用方理解。
+- API 函数必须使用 TSDoc 或块注释说明用途、参数、返回数据语义和错误处理约定。
+- `src/typings` 中对外类型、请求参数、响应对象、状态字段、枚举字段必须补充字段注释。
+- 复杂 `hooks`、`utils`、Pinia store action、权限判断、请求错误处理必须有必要注释。
+- Vue 组件的 props、emits、slot、暴露方法如语义不直观，必须补充注释。
+- 表格列、表单模型、权限按钮、动态路由和缓存策略中的特殊逻辑必须说明业务原因。
+- 临时兼容、历史包袱、特殊分支必须说明保留原因和删除条件。
 - 不保留大段注释掉的废弃代码。
 - 不写重复代码本身的无意义注释。
+
+示例：
+
+```ts
+/**
+ * 查询用户分页列表。
+ *
+ * @param params - 查询条件，用户名支持模糊匹配。
+ * @returns 用户分页数据，空结果返回空 records。
+ */
+export function fetchGetUserList(params?: Api.SystemManage.UserSearchParams) {
+  return request<Api.SystemManage.UserList>({
+    url: '/systemManage/getUserList',
+    method: 'get',
+    params
+  });
+}
+```
 
 ## AI 编码代理规则
 
@@ -395,6 +416,7 @@ AI 修改前端代码时必须遵守：
 - 是否使用 TypeScript 明确类型。
 - 是否使用统一 request 封装。
 - 是否补充或更新 `Api` namespace 类型。
+- API 函数、公共类型、复杂 hooks / store / utils 是否补充必要注释。
 - 是否使用 `$t` 和 locales 维护文案。
 - 是否复用 Ant Design Vue、UnoCSS、已有 hooks 和组件。
 - 是否需要执行 `pnpm gen-route`。

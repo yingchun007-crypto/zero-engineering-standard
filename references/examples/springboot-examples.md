@@ -562,11 +562,37 @@ public class UserServiceImpl implements UserService {
 ## Service / Convert
 
 ```java
+/**
+ * 用户业务服务。
+ *
+ * <p>负责用户查询、创建和用户领域规则校验，不处理 HTTP 入参和响应封装。</p>
+ */
 public interface UserService {
+
+    /**
+     * 分页查询用户列表。
+     *
+     * @param query 查询条件，页码从 1 开始，用户名支持模糊查询
+     * @return 用户分页数据，查询结果为空时返回空 records
+     */
     PageResult<UserVO> pageUsers(UserQueryDTO query);
 
+    /**
+     * 查询用户详情。
+     *
+     * @param userId 用户 ID
+     * @return 用户详情
+     * @throws BusinessException 用户不存在时抛出 {@link ErrorCode#USER_NOT_FOUND}
+     */
     UserVO getUser(Long userId);
 
+    /**
+     * 创建用户。
+     *
+     * @param request 创建用户请求
+     * @return 创建后的用户信息
+     * @throws BusinessException 手机号已存在时抛出 {@link ErrorCode#USER_MOBILE_EXISTS}
+     */
     UserVO createUser(UserCreateDTO request);
 }
 

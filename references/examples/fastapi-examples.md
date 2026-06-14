@@ -255,21 +255,57 @@ class UserConverter:
 
 
 class UserService:
+    """用户业务服务。
+
+    负责用户查询、创建和用户领域规则校验，不处理 HTTP 入参和响应封装。
+    """
+
     def __init__(self, db: AsyncSession) -> None:
         self.db = db
         self.repository = UserRepository(db)
 
     async def page_users(self, page_no: int, page_size: int) -> PageResult[UserResponse]:
+        """分页查询用户列表。
+
+        Args:
+            page_no: 页码，从 1 开始。
+            page_size: 每页数量。
+
+        Returns:
+            用户分页数据，查询结果为空时返回空 records。
+        """
         users, total = await self.repository.page_users(page_no=page_no, page_size=page_size)
         records = [UserConverter.model_to_response(user) for user in users]
         return PageResult.of(records=records, total=total, page_no=page_no, page_size=page_size)
 
     async def get_user(self, user_id: int) -> UserResponse:
+        """查询用户详情。
+
+        Args:
+            user_id: 用户 ID。
+
+        Returns:
+            用户详情。
+
+        Raises:
+            BusinessException: 用户不存在时抛出 USER_NOT_FOUND。
+        """
         user = await self.repository.get_by_id(user_id)
         ApiAssert.not_none(user, ErrorCode.USER_NOT_FOUND)
         return UserConverter.model_to_response(user)
 
     async def create_user(self, request: UserCreateRequest) -> UserResponse:
+        """创建用户。
+
+        Args:
+            request: 创建用户请求。
+
+        Returns:
+            创建后的用户信息。
+
+        Raises:
+            BusinessException: 手机号已存在时抛出 USER_MOBILE_EXISTS。
+        """
         try:
             exists = await self.repository.exists_by_mobile(request.mobile)
             ApiAssert.is_false(exists, ErrorCode.USER_MOBILE_EXISTS)
