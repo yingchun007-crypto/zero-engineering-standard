@@ -2,6 +2,14 @@
 
 仅在初始化项目、补齐基础设施、或需要完整样例时读取。项目已有实现优先；如项目无统一实现，优先按本文模板保持一致。
 
+## Lombok 约定
+
+- DTO、VO、Entity、统一响应和分页对象优先使用 `@Data`。
+- 枚举和异常中只需要 getter 时使用 `@Getter`。
+- 有固定字段构造的枚举使用 `@RequiredArgsConstructor`。
+- Spring Bean 依赖注入使用 `private final` 字段 + `@RequiredArgsConstructor`，避免字段注入。
+- 需要无参/全参构造的响应对象使用 `@NoArgsConstructor`、`@AllArgsConstructor`。
+
 ## 推荐包结构
 
 ```text

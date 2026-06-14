@@ -31,7 +31,8 @@
 
 - 以项目现有 Spring Boot 版本、包结构、基础类、统一响应、异常、权限和测试命令为准。
 - 不为了套用本文示例而新增框架、移动目录或重写基础设施。
-- 新建且无约束项目可参考：Java 17+、Spring Boot 3.x、Maven / Gradle、Spring Validation、MyBatis-Plus、springdoc-openapi。
+- 新建且无约束项目可参考：Java 17+、Spring Boot 3.x、Maven / Gradle、Spring Validation、MyBatis-Plus、springdoc-openapi、Lombok。
+- 项目已使用或允许使用 Lombok 时，优先使用 Lombok 减少样板代码；不要在局部代码中混用大量手写 getter/setter/构造器。
 
 ## 分层与目录
 
@@ -43,12 +44,14 @@
 - `entity`：数据库结构映射；业务表默认继承项目基础实体。
 - `dto`：请求对象；`vo`：响应对象；`convert`：对象转换。
 - `common` / `config`：公共能力和项目配置。
+- 依赖注入优先使用构造器注入：字段声明为 `private final`，类上使用 Lombok `@RequiredArgsConstructor`。
 
 目录必须跟随项目现有结构。新增模块优先参考同类模块。
 
 ## Controller
 
 - Controller 返回项目统一响应结构；特殊接口如文件、流式、Actuator、Webhook 可按协议返回。
+- Controller 使用 `@RequiredArgsConstructor` + `private final` 注入 Service，避免字段注入。
 - 请求体使用 `@Valid` / `@Validated`；路径和查询参数按项目方式启用校验。
 - 不在 Controller 中写复杂业务、事务、SQL、对象拼装和通用 try-catch。
 - 不直接返回 Entity、异常堆栈、SQL、内部类名、密钥或 Token。
@@ -58,6 +61,8 @@
 ## DTO / VO / Entity
 
 - 请求 DTO 与响应 VO 分离，不复用 Entity 作为接口模型。
+- DTO、VO、Entity 在项目允许 Lombok 时优先使用 `@Data`；只读或不可变对象可按项目风格使用 `@Getter`、`@Builder` 等。
+- 需要无参/全参构造时使用 Lombok `@NoArgsConstructor`、`@AllArgsConstructor`，避免手写重复构造器。
 - DTO 必须声明类型、校验规则和关键字段说明。
 - VO 必须过滤密码、盐值、密钥、内部权限表达式和敏感字段。
 - Entity 字段与表结构一致；ID、时间、金额、状态字段遵守项目和数据库规范。
@@ -67,6 +72,7 @@
 ## Service 与事务
 
 - 业务规则、权限后置校验、状态机、幂等和事务编排放在 Service。
+- ServiceImpl 使用 `@Service`、`@RequiredArgsConstructor` 和 `private final` 注入 Mapper、Repository、Client 等依赖。
 - 写操作涉及多步骤、跨表、状态流转或外部副作用时必须明确事务边界。
 - 事务范围尽量小，不在长事务中调用慢外部接口、上传文件或做大量循环。
 - 不吞异常后返回成功；需要补偿时必须说明补偿策略。
